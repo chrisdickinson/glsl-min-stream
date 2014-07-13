@@ -12,6 +12,7 @@ function minifier(safe_words, mutate_storages) {
 
   var _ = {}
     , seen_names = {}
+    , non_free_variables = {}
     , counter
 
   for(var i = 0, len = safe_words.length; i < len; ++i)
@@ -22,13 +23,24 @@ function minifier(safe_words, mutate_storages) {
 
   return through(mutate)
 
+  function freeVariable () {
+    var variable;
+    do {
+      variable = counter();
+    } while (variable in non_free_variables);
+    return variable;
+  }
+
   function mutate(node) {
     if(should_mutate(node)) {
       var t = node.parent.parent.children[1]
       if(mutate_storages || (t.type === 'placeholder' || t.token.data === 'const')) {
-        var x = seen_names[node.token.data] || counter()
+        var x = seen_names[node.token.data] || freeVariable()
         seen_names[node.token.data] = x
         node.data = x
+      }
+      else {
+        non_free_variables[node.token.data] = t.token.data;
       }
     }
 
