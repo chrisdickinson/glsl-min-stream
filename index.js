@@ -78,6 +78,11 @@ function minifier(safe_words, mutate_storages) {
       if (/^int|float|bool|[ib]?vec[234]|mat[234]$/.test(node.children[0].data)) return node.children[0].data
       return 'unidentified'
     }
+    if (node.type === 'binary') {
+      if (node.data === '==' || node.data === '&&' || node.data === '||' || node.data === '^^') return 'bool'
+      if (node.data === '+' || node.data === '-' || node.data === '/') return get_type(node.children[0])
+    }
+    if (node.type === 'unary' || node.type === 'group' || node.type === 'suffix') return get_type(node.children[0])
     return 'unidentified'
   }
 
