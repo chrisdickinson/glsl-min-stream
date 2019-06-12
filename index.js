@@ -16,6 +16,7 @@ function minifier(safe_words, mutate_storages) {
   var _ = {}
     , seen_names = {}
     , variable_type = new Map()
+    , function_type = {}
     , counter
 
   for(var i = 0, len = safe_words.length; i < len; ++i)
@@ -58,6 +59,8 @@ function minifier(safe_words, mutate_storages) {
       variable_type.set(node.scope, scope)
     }
 
+    if(is_function(node)) function_type[node.data] = node.parent.parent.token.data
+
     // 1.0 => 1. // 0.1 => .1 // 0.0 => .0
     if(node.type === 'literal') {
       if(/0\.\d/.test(node.data)) node.data = node.data.replace(/^0\./, '.')
@@ -76,7 +79,7 @@ function minifier(safe_words, mutate_storages) {
     }
     if (node.type === 'call') {
       if (/^int|float|bool|[ib]?vec[234]|mat[234]$/.test(node.children[0].data)) return node.children[0].data
-      return 'unidentified'
+      return function_type[node.children[0].data] || 'unidentified'
     }
     if (node.type === 'binary') {
       if (node.data === '==' || node.data === '&&' || node.data === '||' || node.data === '^^') return 'bool'
